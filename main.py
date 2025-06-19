@@ -1,4 +1,5 @@
 import argparse
+import logging
 
 import yaml
 from codewarden.config import Configuration
@@ -19,9 +20,9 @@ def init_config() -> Configuration | None:
     conf = None
 
     with open(opts.config, "r+", encoding="utf-8") as file:
-        print("trying to read config file", opts.config)
+        logging.info("trying to read config file %s", opts.config)
         config = yaml.safe_load(file)
-        print("config", config)
+        logging.info("config %s", config)
         conf = Configuration(**config)
         file.close()
 
@@ -29,10 +30,16 @@ def init_config() -> Configuration | None:
 
 
 def main():
+    # initialize the configuration for the project
     conf = init_config()
     if not conf:
         raise Exception("no configuration provided")
 
+    conf.logger.info("i am a INFO log message")
+    conf.logger.debug("i am a DEBUG log message")
+    conf.logger.warning("i am a WARNING log message")
+
 
 if __name__ == "__main__":
+    logging.getLogger().setLevel(logging.DEBUG)
     main()
