@@ -5,8 +5,9 @@ fmt:
 
 .PHONY: install
 install:
-	uv add google-generativeai google-cloud-bigquery crewai black
+	uv add google-generativeai google-cloud-bigquery crewai black pyyaml
 
 .PHONY: run
 run: fmt
-	uv run main.py
+	find . -type d -name __pycache__ | xargs rm -fr 
+	uv run main.py --config dev.config.yaml

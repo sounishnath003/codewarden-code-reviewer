@@ -9,5 +9,5 @@ wheels/
 # Virtual environments
 .venv
 .logs
-.dev.config
-.prod.config
+dev.config.yaml
+prod.config.yaml
