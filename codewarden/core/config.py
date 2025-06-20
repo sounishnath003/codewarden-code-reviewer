@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Literal
 from crewai import LLM
 
-from codewarden.logger import LogLevel
+from codewarden.command.logger import LogLevel
 
 
 @dataclass

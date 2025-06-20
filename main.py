@@ -2,11 +2,12 @@ import argparse
 import logging
 
 import yaml
-from codewarden.config import Configuration
+from codewarden.core.config import Configuration
 
 
 def init_config() -> Configuration | None:
     """parses the runtime --config file and return the Configuration instance for the project as defined"""
+    # create a argument parser
     parser = argparse.ArgumentParser("codewarden")
     # add the arguments
     parser.add_argument(
@@ -15,10 +16,10 @@ def init_config() -> Configuration | None:
         required=True,
         help="provide the config yaml file for your environment",
     )
-
+    # parse the pipeline args and unknown args
     opts, pipeline_opts = parser.parse_known_args()
     conf = None
-
+    # try to open config and read the yaml and parse it
     with open(opts.config, "r+", encoding="utf-8") as file:
         logging.info("trying to read config file %s", opts.config)
         config = yaml.safe_load(file)

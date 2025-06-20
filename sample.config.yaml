@@ -1,0 +1,6 @@
+
+env: DEV
+log_level: DEBUG
+
+model_name: gemini-2.0-flash
+google_svc_creds_file: path/to/credentials.json
