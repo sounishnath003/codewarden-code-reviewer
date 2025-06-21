@@ -40,12 +40,16 @@ class GitDiffTool(BaseTool):
         self,
         start_commit: str = "HEAD~1",
         end_commit: str = "HEAD",
+        exclude_files: str = (
+            ":(exclude)docs/" " :(exclude)uv.lock" " :(exclude)**/*.md",
+            " :(exclude)package-lock.json",
+        ),
         *args: Any,
         **kwargs: Any,
     ) -> Any:
         try:
             result = subprocess.run(
-                ["git", "diff", f"{start_commit}...{end_commit}"],
+                ["git", "diff", f"{start_commit}...{end_commit}", exclude_files],
                 capture_output=True,
                 text=True,
                 check=True,

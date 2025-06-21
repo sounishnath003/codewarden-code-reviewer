@@ -41,7 +41,7 @@ class CodeReviewAgent(BaseCodewardenAgent):
         conf: Configuration,
         tools: typing.List[BaseTool] = [
             GitDiffTool(),
-            PRDiffTool(),
+            # PRDiffTool(),
             StaticAnalysisTool(),
         ],
     ) -> None:
