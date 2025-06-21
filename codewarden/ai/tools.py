@@ -28,6 +28,7 @@ class CodeReadTool(BaseTool):
         ".env",
         "package.json",
         "package-lock.json",
+        ".md"
     ]
 
     def _run(self, path: str) -> str:
@@ -111,8 +112,6 @@ class PRDiffTool(BaseTool):
         if not token:
             return "GITHUB_TOKEN not set."
 
-        repo = "codewarden-code-reviewer"
-        pr_number = "1"
         headers = {
             "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github.v3.diff",
@@ -163,8 +162,6 @@ class GitHubPRCommentTool(BaseTool):
         if not token:
             return "GITHUB_TOKEN not set."
 
-        repo = "codewarden-code-reviewer"
-        commit_sha = "4aae40c"
         url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}/comments"
         headers = {
             "Authorization": f"Bearer {token}",
@@ -223,9 +220,6 @@ class GitHubCommitCommentTool(BaseTool):
         if not token:
             return "GITHUB_TOKEN is not set."
 
-        repo = "sounishnath003/codewarden-code-reviewer"
-        commit_sha = "4aae40c"
-
         url = f"https://api.github.com/repos/{repo}/commits/{commit_sha}/comments"
         headers = {
             "Authorization": f"Bearer {token}",
@@ -233,7 +227,7 @@ class GitHubCommitCommentTool(BaseTool):
         }
 
         payload = {
-            "body": message,
+            "body": f"[Codewarden]: {message}",
             "path": path,
             "position": position,  # Position in diff, not line number in file!
             "commit_id": commit_sha,

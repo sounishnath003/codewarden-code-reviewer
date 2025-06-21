@@ -69,11 +69,10 @@ def main():
                 ":(exclude)**/*.md",
                 ":(exclude)package-lock.json",
             ],
-            "repo": "sounishnath003/codewarden-code-reviewer",
-            "commit_sha": "4aae40c",
         }
     )
 
+    conf.logger.info("result: %s", result)
     conf.logger.info("tokens.usage: %s", result.token_usage)
 
 
