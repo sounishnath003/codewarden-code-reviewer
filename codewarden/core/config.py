@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Literal
 from crewai import LLM
 
-from codewarden.command.logger import LogLevel
+from codewarden.command.logger import LogLevel, LoggerFormat
 
 type ProjectType = typing.Literal["NODEJS", "PYTHON", "JAVA", "UNKNOWN"]
 
@@ -20,6 +20,7 @@ class Configuration:
 
     @property
     def llm(self):
+        self.logger.debug("creating the llm instance")
         return LLM(
             model=self.model_name or "gemini-2.0-flash",
             temperature=0.10,
@@ -31,15 +32,11 @@ class Configuration:
 
     @property
     def logger(self) -> logging.Logger:
-        logging.basicConfig(
-            level=self.log_level,
-            datefmt="%Y-%m-%d %H:%M:%S",
-            style="%",
-            format="[%(levelname)s]:%(name)s:%(asctime)s:%(filename)s:%(lineno)d: %(message)s",
-        )
+        logging.basicConfig(**LoggerFormat)
         return logging.getLogger("Codewarden")
 
     def detect_project_type(self, path: str = ".") -> ProjectType:
+        self.logger.info("trying to identify the project workspace")
         if os.path.exists(os.path.join(path, "package.json")):
             return "NODEJS"
         elif os.path.exists(os.path.join(path, "pyproject.toml")) or os.path.exists(
