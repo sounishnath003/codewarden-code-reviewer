@@ -51,7 +51,17 @@ def main():
         verbose=True,
     )
 
-    result = workflow.kickoff(inputs={"directory_path": os.path.join(os.getcwd())})
+    result = workflow.kickoff(
+        inputs={
+            "directory_path": os.path.join(os.getcwd()),
+            "exclude_files": [
+                ":(exclude)docs/",
+                ":(exclude)uv.lock",
+                ":(exclude)**/*.md",
+                ":(exclude)package-lock.json",
+            ],
+        }
+    )
     conf.logger.info("agent output= %s", result)
 
 

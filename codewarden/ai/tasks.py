@@ -20,7 +20,8 @@ class CodeReviewTask(BaseCodewardenTask):
             ),
             expected_output=(
                 "A list of review comments in markdown format. Each comment should include the issue, "
-                "the affected line or section, and a recommended fix or improvement."
+                "the affected line or section, and a recommended fix or improvement. "
+                "Must mention the filepath for which you are generating comments,fix, improvements or recommendation"
             ),
             async_execution=False,
         )

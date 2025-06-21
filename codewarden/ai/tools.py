@@ -40,16 +40,26 @@ class GitDiffTool(BaseTool):
         self,
         start_commit: str = "HEAD~1",
         end_commit: str = "HEAD",
-        exclude_files: str = (
-            ":(exclude)docs/" " :(exclude)uv.lock" " :(exclude)**/*.md",
-            " :(exclude)package-lock.json",
-        ),
+        exclude_files: list[str] = [],
         *args: Any,
         **kwargs: Any,
     ) -> Any:
         try:
+            # Build the git diff command with proper argument handling
+            cmd = ["git", "diff", f"{start_commit}...{end_commit}"]
+            # add exclude_files if None or length is zero
+            if not exclude_files or len(exclude_files) == 0:
+                exclude_files = [
+                    ":(exclude)docs/",
+                    ":(exclude)uv.lock",
+                    ":(exclude)**/*.md",
+                    ":(exclude)package-lock.json",
+                ]
+            # Extend the command with exclude patterns
+            cmd.extend(exclude_files)
+
             result = subprocess.run(
-                ["git", "diff", f"{start_commit}...{end_commit}", exclude_files],
+                cmd,
                 capture_output=True,
                 text=True,
                 check=True,
@@ -98,8 +108,10 @@ class TestScannerTool(BaseTool):
 class StaticAnalysisTool(BaseTool):
     name: str = "Run Static Code Analysis"
     description: str = "Runs static analysis (e.g., pylint) on a file"
+    logger: logging.Logger = logging.getLogger("Codewarden")
 
     def _run(self, file_path: str) -> str:
+        self.logger.info("running pylint on file_path=%s", file_path)
         try:
             output = subprocess.check_output(
                 ["pylint", file_path], stderr=subprocess.STDOUT
@@ -110,7 +122,7 @@ class StaticAnalysisTool(BaseTool):
 
 
 class GitHubPRCommentTool(BaseTool):
-    name: str = "post_comment"
+    name: str = "Create Github PR Comment"
     description: str = "Posts a comment on a GitHub PR"
 
     def _run(
@@ -132,7 +144,7 @@ class GitHubPRCommentTool(BaseTool):
 
 
 class GitHubCommitCommentTool(BaseTool):
-    name: str = "post_commit_comment"
+    name: str = "Github Commit Comment"
     description: str = "Posts a comment on a GitHub commit"
 
     def _run(
