@@ -6,7 +6,7 @@ import argparse
 import logging
 
 from codewarden.ai import agents
-from codewarden.ai.tasks import CodeReviewTask
+from codewarden.ai import tasks
 from codewarden.command import logger as cw_logger
 from codewarden.core.config import Configuration
 
@@ -105,12 +105,24 @@ def main():
         raise Exception("no configuration provided")
 
     # Agents:
-    prd_agent = agents.CodeReviewAgent(conf)
     context_agent = agents.WorkspaceContextAgent(conf=conf)
+    code_review_agent = agents.CodeReviewAgent(conf)
+    test_agent = agents.CodeTestAgent(conf)
+    comment_agent = agents.GithubCommentAgent(conf)
 
     workflow = Crew(
-        agents=[prd_agent.agent],
-        tasks=[CodeReviewTask(agent=prd_agent.agent).task],
+        agents=[
+            context_agent.agent,
+            code_review_agent.agent,
+            # test_agent.agent,
+            # comment_agent.agent,
+        ],
+        tasks=[
+            tasks.WorkspaceContextTask(context_agent.agent).task,
+            tasks.CodeReviewTask(code_review_agent.agent).task,
+            # tasks.CodeTestTask(test_agent.agent).task,
+            # tasks.GithubCommentTask(comment_agent.agent).task,
+        ],
         verbose=True,
     )
 
@@ -127,6 +139,7 @@ def main():
     )
 
     update_readme_with_commit_review(result)
+    conf.logger.info("tokens.usage: %s", result.token_usage)
 
 
 if __name__ == "__main__":

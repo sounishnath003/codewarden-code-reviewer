@@ -7,6 +7,7 @@ from codewarden.core.config import Configuration
 from codewarden.ai.tools import (
     CodeReadTool,
     GitDiffTool,
+    GitHubCommitCommentTool,
     GitHubPRCommentTool,
     PRDiffTool,
     StaticAnalysisTool,
@@ -32,6 +33,8 @@ class WorkspaceContextAgent(BaseCodewardenAgent):
             goal="Understand the project structure, architecture and coding patterns of this project",
             backstory="You are a senior software architecture with deep experience in analyzing codebases.",
             verbose=True,
+            tools=self.tools,
+            llm=conf.llm,
         )
 
 
@@ -81,7 +84,10 @@ class GithubCommentAgent(BaseCodewardenAgent):
     def __init__(
         self,
         conf: Configuration,
-        tools: typing.List[BaseTool] = [GitHubPRCommentTool()],
+        tools: typing.List[BaseTool] = [
+            GitHubPRCommentTool(),
+            GitHubCommitCommentTool(),
+        ],
     ) -> None:
         super().__init__()
         self.conf = conf
