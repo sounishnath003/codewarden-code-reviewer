@@ -28,17 +28,79 @@ class CodeReadTool(BaseTool):
         ".env",
         "package.json",
         "package-lock.json",
+        ".md",
+        "yarn.lock",
+        "pnpm-lock.yaml",
+        "Cargo.lock",
+        "go.mod",
+        "go.sum",
+        "requirements.txt",
+        "Pipfile",
+        "Pipfile.lock",
+        "poetry.lock",
+        "setup.py",
+        "setup.cfg",
+        "MANIFEST.in",
+        ".gitignore",
+        ".gitattributes",
+        ".editorconfig",
+        ".prettierrc",
+        ".eslintrc",
+        "tsconfig.json",
+        "webpack.config.js",
+        "vite.config.js",
+        "rollup.config.js",
+        "jest.config.js",
+        "karma.conf.js",
+        "mocha.opts",
+        ".nycrc",
+        ".coveragerc",
+        "tox.ini",
+        "pytest.ini",
+        ".flake8",
+        ".pylintrc",
+        "mypy.ini",
+        "bandit.yaml",
+        "safety.yaml",
+        "docker-compose.yml",
+        "Dockerfile",
+        ".dockerignore",
+        "Makefile",
+        "CMakeLists.txt",
+        "build.gradle",
+        "pom.xml",
+        "composer.json",
+        "composer.lock",
+        "Gemfile",
+        "Gemfile.lock",
+        "Rakefile",
+        "mix.exs",
+        "mix.lock",
+        "pubspec.yaml",
+        "pubspec.lock",
+        "cabal.project",
+        "stack.yaml",
+        "package.yaml",
+        "shard.yml",
+        "shard.lock",
+        "vcpkg.json",
+        "conanfile.txt",
+        "conanfile.py",
+        "vcpkg.json",
+        "vcpkg-configuration.json",
         ".md"
     ]
 
     def _run(self, path: str) -> str:
-        for f in self.excluded_filenames:
-            if f in path:
-                return f"This file={path} is among special configration files, no need to read"
 
         file = Path(path)
         if not file.exists():
-            return f"File {path} does not exist."
+            return f"File {path} does not exist. No Recommendations should be generated."
+        
+        for f in self.excluded_filenames:
+            if f in path:
+                return f"This file={path} is among special configration files, no need to read"
+        
         return file.read_text()
 
 
@@ -83,6 +145,7 @@ class GitDiffTool(BaseTool):
                     ":(exclude)docs/",
                     ":(exclude)uv.lock",
                     ":(exclude)**/*.md",
+                    ":(exclude)README.md",
                     ":(exclude)package-lock.json",
                 ]
             # Extend the command with exclude patterns
@@ -227,7 +290,7 @@ class GitHubCommitCommentTool(BaseTool):
         }
 
         payload = {
-            "body": f"[Codewarden]: {message}",
+            "body": f"[Codewarden] ✨: {message}",
             "path": path,
             "position": position,  # Position in diff, not line number in file!
             "commit_id": commit_sha,
