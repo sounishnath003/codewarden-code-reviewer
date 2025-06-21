@@ -114,14 +114,14 @@ def main():
         agents=[
             context_agent.agent,
             code_review_agent.agent,
-            # test_agent.agent,
-            # comment_agent.agent,
+            test_agent.agent,
+            comment_agent.agent,
         ],
         tasks=[
             tasks.WorkspaceContextTask(context_agent.agent).task,
             tasks.CodeReviewTask(code_review_agent.agent).task,
-            # tasks.CodeTestTask(test_agent.agent).task,
-            # tasks.GithubCommentTask(comment_agent.agent).task,
+            tasks.CodeTestTask(test_agent.agent).task,
+            tasks.GithubCommentTask(comment_agent.agent).task,
         ],
         verbose=True,
     )
