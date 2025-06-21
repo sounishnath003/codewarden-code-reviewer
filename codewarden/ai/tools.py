@@ -142,16 +142,15 @@ class GitDiffTool(BaseTool):
             # Build the git diff command with proper argument handling
             cmd = ["git", "diff", f"{start_commit}...{end_commit}"]
             # add exclude_files if None or length is zero
-            if not exclude_files or len(exclude_files) == 0:
-                # Use configurable exclude patterns if available, otherwise fall back to defaults
-                if not exclude_files or len(exclude_files)==0:
-                    exclude_files = [
-                        ":(exclude)docs/",
-                        ":(exclude)uv.lock",
-                        ":(exclude)**/*.md",
-                        ":(exclude)README.md",
-                        ":(exclude)package-lock.json",
-                    ]
+            # Use configurable exclude patterns if available, otherwise fall back to defaults
+            if not exclude_files or len(exclude_files)==0:
+                exclude_files = [
+                    ":(exclude)docs/",
+                    ":(exclude)uv.lock",
+                    ":(exclude)**/*.md",
+                    ":(exclude)README.md",
+                    ":(exclude)package-lock.json",
+                ]
             # Extend the command with exclude patterns
             cmd.extend(exclude_files)
 
