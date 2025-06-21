@@ -1,8 +1,12 @@
+import os
+from crewai import Crew
 import yaml
 import argparse
 import logging
 
-from codewarden.command import logger
+from codewarden.ai import agents
+from codewarden.ai.tasks import CodeReviewTask
+from codewarden.command import logger as cw_logger
 from codewarden.core.config import Configuration
 
 
@@ -37,11 +41,19 @@ def main():
     if not conf:
         raise Exception("no configuration provided")
 
-    conf.logger.info("i am a INFO log message")
-    conf.logger.debug("i am a DEBUG log message")
-    conf.logger.warning("i am a WARNING log message")
+    # Agents:
+    prd_agent = agents.CodeReviewAgent(conf)
+
+    workflow = Crew(
+        agents=[prd_agent.agent],
+        tasks=[CodeReviewTask(agent=prd_agent.agent).task],
+        verbose=True,
+    )
+
+    result = workflow.kickoff(inputs={"directory_path": os.path.join(os.getcwd())})
+    conf.logger.info("agent output= %s", result)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(**logger.LoggerFormat)
+    cw_logger.init_logger()
     main()
