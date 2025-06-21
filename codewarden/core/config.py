@@ -16,6 +16,7 @@ class Configuration:
     model_name: str
     log_level: LogLevel
     google_svc_creds_file: str
+    github_token: str
     logger: logging.Logger = field(default=init_logger())
 
     def __post_init__(self):

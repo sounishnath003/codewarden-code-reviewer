@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import subprocess
 from typing import Any
+import typing
 from crewai.tools import BaseTool
 import requests
 
@@ -22,12 +23,40 @@ class ProjectWorkspaceAnalyzer(BaseTool):
 class CodeReadTool(BaseTool):
     name: str = "Read Code"
     description: str = "Reads the code written in a file"
+    excluded_filenames: typing.List[str] = [
+        "pyproject.toml",
+        ".env",
+        "package.json",
+        "package-lock.json",
+    ]
 
     def _run(self, path: str) -> str:
+        for f in self.excluded_filenames:
+            if f in path:
+                return f"This file={path} is among special configration files, no need to read"
+
         file = Path(path)
         if not file.exists():
             return f"File {path} does not exist."
         return file.read_text()
+
+
+class UpdateReadmeTool(BaseTool):
+    name: str = "Github Readme Writer"
+    description: str = (
+        "Updates github readme file with latest feature and information as per the latest workspace"
+    )
+
+    def _run(self, updated_content: str, *args: Any, **kwargs: Any) -> Any:
+        try:
+            with open("README.md", "w+", encoding="utf-8") as file:
+                file.write(updated_content)
+                file.write("\n> Readme has been updated by Codewarden")
+                file.close()
+
+            return "Readme file has been updated"
+        except Exception as e:
+            return f"Failed to updated Readme file due to Error={e}"
 
 
 class GitDiffTool(BaseTool):
@@ -82,6 +111,8 @@ class PRDiffTool(BaseTool):
         if not token:
             return "GITHUB_TOKEN not set."
 
+        repo = "codewarden-code-reviewer"
+        pr_number = "1"
         headers = {
             "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github.v3.diff",
@@ -132,6 +163,8 @@ class GitHubPRCommentTool(BaseTool):
         if not token:
             return "GITHUB_TOKEN not set."
 
+        repo = "codewarden-code-reviewer"
+        commit_sha = "4aae40c"
         url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}/comments"
         headers = {
             "Authorization": f"Bearer {token}",
@@ -153,6 +186,9 @@ class GitHubCommitCommentTool(BaseTool):
         token = os.getenv("GITHUB_TOKEN")
         if not token:
             return "GITHUB_TOKEN is not set."
+
+        repo = "codewarden-code-reviewer"
+        commit_sha = "4aae40c"
 
         url = f"https://api.github.com/repos/{repo}/commits/{commit_sha}/comments"
         headers = {

@@ -107,20 +107,18 @@ def main():
     # Agents:
     context_agent = agents.WorkspaceContextAgent(conf=conf)
     code_review_agent = agents.CodeReviewAgent(conf)
-    test_agent = agents.CodeTestAgent(conf)
     comment_agent = agents.GithubCommentAgent(conf)
 
     workflow = Crew(
         agents=[
             context_agent.agent,
             code_review_agent.agent,
-            test_agent.agent,
             comment_agent.agent,
         ],
         tasks=[
             tasks.WorkspaceContextTask(context_agent.agent).task,
+            tasks.UpdateReadmeTask(context_agent.agent).task,
             tasks.CodeReviewTask(code_review_agent.agent).task,
-            tasks.CodeTestTask(test_agent.agent).task,
             tasks.GithubCommentTask(comment_agent.agent).task,
         ],
         verbose=True,
@@ -135,6 +133,8 @@ def main():
                 ":(exclude)**/*.md",
                 ":(exclude)package-lock.json",
             ],
+            "repo": "codewarden-code-reviewer",
+            "commit_sha": "4aae40c",
         }
     )
 

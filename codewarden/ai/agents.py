@@ -12,6 +12,7 @@ from codewarden.ai.tools import (
     PRDiffTool,
     StaticAnalysisTool,
     TestScannerTool,
+    UpdateReadmeTool,
 )
 
 # Initial thoughts what are the agents
@@ -22,7 +23,9 @@ from codewarden.ai.tools import (
 
 class WorkspaceContextAgent(BaseCodewardenAgent):
     def __init__(
-        self, conf: Configuration, tools: typing.List[BaseTool] = [CodeReadTool()]
+        self,
+        conf: Configuration,
+        tools: typing.List[BaseTool] = [CodeReadTool(), UpdateReadmeTool()],
     ) -> None:
         super().__init__()
         self.conf = conf
@@ -85,8 +88,8 @@ class GithubCommentAgent(BaseCodewardenAgent):
         self,
         conf: Configuration,
         tools: typing.List[BaseTool] = [
-            GitHubPRCommentTool(),
             GitHubCommitCommentTool(),
+            # GitHubPRCommentTool(),
         ],
     ) -> None:
         super().__init__()

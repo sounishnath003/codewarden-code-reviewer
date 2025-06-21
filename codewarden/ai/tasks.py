@@ -42,6 +42,29 @@ class WorkspaceContextTask(BaseCodewardenTask):
         )
 
 
+class UpdateReadmeTask(BaseCodewardenTask):
+    def __init__(self, agent: BaseCodewardenAgent) -> None:
+        super().__init__()
+        self.agent = agent
+
+    @property
+    def task(self) -> Task:
+        return Task(
+            agent=self.agent,
+            description=(
+                "Analyze the current project workspace and update the README.md file with the latest "
+                "project information, features, and structure. Ensure the README reflects the current "
+                "state of the codebase and includes proper documentation for users and contributors."
+            ),
+            expected_output=(
+                "Updated README.md content that includes: project description, installation instructions, "
+                "usage examples, project structure, and any other relevant documentation. "
+                "The content should be well-formatted markdown ready to be written to README.md."
+            ),
+            async_execution=False,
+        )
+
+
 class CodeTestTask(BaseCodewardenTask):
     def __init__(self, agent: BaseCodewardenAgent) -> None:
         super().__init__()
@@ -67,6 +90,6 @@ class GithubCommentTask(BaseCodewardenTask):
         return Task(
             agent=self.agent,
             description="Convert the review output into structured GitHub comments with filename, line number, and message.",
-            expected_output="List of JSON-formatted GitHub comments with path, position, and message.",
+            expected_output="Direct List of JSON-formatted GitHub comments with path, position, and message. No need of additional ```json tag in response",
             async_execution=False,
         )
