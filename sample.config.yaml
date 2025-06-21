@@ -1,4 +1,3 @@
-
 env: DEV
 log_level: DEBUG
 
@@ -6,3 +5,15 @@ model_name: gemini-2.0-flash
 google_svc_creds_file: path/to/credentials.json
 
 github_token: your-github-personal-access-token (https://github.com/settings/tokens)
+
+# Git diff exclude patterns - customize which files/folders to exclude from git diff analysis
+git_diff_exclude_patterns:
+  - ":(exclude)docs/"
+  - ":(exclude)uv.lock"
+  - ":(exclude)**/*.md"
+  - ":(exclude)README.md"
+  - ":(exclude)package-lock.json"
+  - ":(exclude)node_modules/"
+  - ":(exclude).git/"
+  - ":(exclude)dist/"
+  - ":(exclude)build/"

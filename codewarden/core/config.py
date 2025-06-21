@@ -17,6 +17,13 @@ class Configuration:
     log_level: LogLevel
     google_svc_creds_file: str
     github_token: str
+    git_diff_exclude_patterns: typing.List[str] = field(default_factory=lambda: [
+        ":(exclude)docs/",
+        ":(exclude)uv.lock",
+        ":(exclude)**/*.md",
+        ":(exclude)README.md",
+        ":(exclude)package-lock.json",
+    ])
     logger: logging.Logger = field(default=init_logger())
 
     def __post_init__(self):

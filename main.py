@@ -72,7 +72,6 @@ def main():
         }
     )
 
-    conf.logger.info("result: %s", result)
     conf.logger.info("tokens.usage: %s", result.token_usage)
 
 

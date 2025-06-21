@@ -88,19 +88,21 @@ class CodeReadTool(BaseTool):
         "conanfile.py",
         "vcpkg.json",
         "vcpkg-configuration.json",
-        ".md"
+        ".md",
     ]
 
     def _run(self, path: str) -> str:
 
         file = Path(path)
         if not file.exists():
-            return f"File {path} does not exist. No Recommendations should be generated."
-        
+            return (
+                f"File {path} does not exist. No Recommendations should be generated."
+            )
+
         for f in self.excluded_filenames:
             if f in path:
                 return f"This file={path} is among special configration files, no need to read"
-        
+
         return file.read_text()
 
 
@@ -128,6 +130,10 @@ class GitDiffTool(BaseTool):
 
     logger: logging.Logger = logging.getLogger("Codewarden")
 
+    def __init__(self, config=None):
+        super().__init__()
+        self.config = config
+
     def _run(
         self,
         start_commit: str = "HEAD~1",
@@ -141,13 +147,17 @@ class GitDiffTool(BaseTool):
             cmd = ["git", "diff", f"{start_commit}...{end_commit}"]
             # add exclude_files if None or length is zero
             if not exclude_files or len(exclude_files) == 0:
-                exclude_files = [
-                    ":(exclude)docs/",
-                    ":(exclude)uv.lock",
-                    ":(exclude)**/*.md",
-                    ":(exclude)README.md",
-                    ":(exclude)package-lock.json",
-                ]
+                # Use configurable exclude patterns if available, otherwise fall back to defaults
+                if self.config and hasattr(self.config, 'git_diff_exclude_patterns'):
+                    exclude_files = self.config.git_diff_exclude_patterns
+                else:
+                    exclude_files = [
+                        ":(exclude)docs/",
+                        ":(exclude)uv.lock",
+                        ":(exclude)**/*.md",
+                        ":(exclude)README.md",
+                        ":(exclude)package-lock.json",
+                    ]
             # Extend the command with exclude patterns
             cmd.extend(exclude_files)
 

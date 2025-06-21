@@ -46,14 +46,16 @@ class CodeReviewAgent(BaseCodewardenAgent):
     def __init__(
         self,
         conf: Configuration,
-        tools: typing.List[BaseTool] = [
-            GitDiffTool(),
-            # PRDiffTool(),
-            StaticAnalysisTool(),
-        ],
+        tools: typing.Optional[typing.List[BaseTool]] = None,
     ) -> None:
         super().__init__()
         self.conf = conf
+        if tools is None:
+            tools = [
+                GitDiffTool(config=conf),
+                # PRDiffTool(),
+                StaticAnalysisTool(),
+            ]
         self.tools = tools
 
         self.agent = Agent(
