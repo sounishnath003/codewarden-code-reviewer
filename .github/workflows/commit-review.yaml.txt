@@ -1,0 +1,34 @@
+name: AI Commit Code Review
+
+on:
+  push:
+    branches:
+      - main  # or any branches you want to monitor
+
+jobs:
+  ai_review:
+    name: AI Code Review on Commit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2  # Fetch previous commit for comparison
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run CrewAI Code Review
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          python run_review.py --mode commit --repo "$GITHUB_REPOSITORY" --commit_sha "$COMMIT_SHA"

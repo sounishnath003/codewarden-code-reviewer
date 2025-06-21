@@ -43,6 +43,7 @@ def main():
 
     # Agents:
     prd_agent = agents.CodeReviewAgent(conf)
+    context_agent = agents.WorkspaceContextAgent(conf=conf)
 
     workflow = Crew(
         agents=[prd_agent.agent],

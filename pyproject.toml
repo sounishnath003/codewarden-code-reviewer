@@ -10,5 +10,6 @@ dependencies = [
     "crewai-tools>=0.47.1",
     "google-cloud-bigquery>=3.34.0",
     "google-generativeai>=0.8.5",
+    "pylint>=3.3.7",
     "pyyaml>=6.0.2",
 ]

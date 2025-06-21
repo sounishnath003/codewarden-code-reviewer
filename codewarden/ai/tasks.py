@@ -2,7 +2,6 @@ from crewai import Task
 
 from codewarden.ai.agents import CodeReviewAgent
 from codewarden.ai.base import BaseCodewardenAgent, BaseCodewardenTask
-from codewarden.core.config import Configuration
 
 
 class CodeReviewTask(BaseCodewardenTask):
@@ -23,5 +22,50 @@ class CodeReviewTask(BaseCodewardenTask):
                 "A list of review comments in markdown format. Each comment should include the issue, "
                 "the affected line or section, and a recommended fix or improvement."
             ),
+            async_execution=False,
+        )
+
+
+class WorkspaceContextTask(BaseCodewardenTask):
+    def __init__(self, agent: BaseCodewardenAgent) -> None:
+        super().__init__()
+        self.agent = agent
+
+    @property
+    def task(self) -> Task:
+        return Task(
+            agent=self.agent,
+            description="Scan the project structure and summarize the key components, design patterns, and technologies used.",
+            expected_output="A markdown summary of the project's architecture and purpose.",
+            async_execution=False,
+        )
+
+
+class CodeTestTask(BaseCodewardenTask):
+    def __init__(self, agent: BaseCodewardenAgent) -> None:
+        super().__init__()
+        self.agent = agent
+
+    @property
+    def task(self) -> Task:
+        return Task(
+            agent=self.agent,
+            description="Analyze the changed code and determine whether it is tested or lacks test coverage.",
+            expected_output="List of functions/classes lacking tests and suggestions to improve coverage.",
+            async_execution=False,
+        )
+
+
+class GithubCommentTask(BaseCodewardenTask):
+    def __init__(self, agent: BaseCodewardenAgent) -> None:
+        super().__init__()
+        self.agent = agent
+
+    @property
+    def task(self) -> Task:
+        return Task(
+            agent=self.agent,
+            description="Convert the review output into structured GitHub comments with filename, line number, and message.",
+            expected_output="List of JSON-formatted GitHub comments with path, position, and message.",
             async_execution=False,
         )

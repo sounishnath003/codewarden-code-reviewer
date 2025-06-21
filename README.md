@@ -11,3 +11,4 @@ Your AI-Powered Code Quality Assistant. A code reviewer tool which will run a cl
 - Project type detection and tailored review strategies
 - Secure handling of credentials and sensitive data
 - Raise a PR using github actions
+
