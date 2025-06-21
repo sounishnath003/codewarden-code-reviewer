@@ -294,9 +294,9 @@ class GitHubCommitCommentTool(BaseTool):
 
         payload = {
             "body": f"[Codewarden] ✨: {message}",
-            # "path": path,
-            # "position": position,  # Position in diff, not line number in file!
-            # "commit_id": commit_sha,
+            "path": path,
+            "position": position,  # Position in diff, not line number in file!
+            "commit_id": commit_sha,
         }
 
         response = requests.post(url, json=payload, headers=headers)
