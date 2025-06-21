@@ -130,10 +130,6 @@ class GitDiffTool(BaseTool):
 
     logger: logging.Logger = logging.getLogger("Codewarden")
 
-    def __init__(self, config=None):
-        super().__init__()
-        self.config = config
-
     def _run(
         self,
         start_commit: str = "HEAD~1",
@@ -148,9 +144,7 @@ class GitDiffTool(BaseTool):
             # add exclude_files if None or length is zero
             if not exclude_files or len(exclude_files) == 0:
                 # Use configurable exclude patterns if available, otherwise fall back to defaults
-                if self.config and hasattr(self.config, 'git_diff_exclude_patterns'):
-                    exclude_files = self.config.git_diff_exclude_patterns
-                else:
+                if not exclude_files or len(exclude_files)==0:
                     exclude_files = [
                         ":(exclude)docs/",
                         ":(exclude)uv.lock",
