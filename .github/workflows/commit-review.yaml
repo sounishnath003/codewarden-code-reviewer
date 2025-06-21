@@ -31,4 +31,5 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
-          python run_review.py --mode commit --repo "$GITHUB_REPOSITORY" --commit_sha "$COMMIT_SHA"
+          echo python run_review.py --mode commit --repo "$GITHUB_REPOSITORY" --commit_sha "$COMMIT_SHA"
+          python main.py --config sample.config.yaml

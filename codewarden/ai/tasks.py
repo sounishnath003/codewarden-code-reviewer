@@ -19,7 +19,7 @@ class CodeReviewTask(BaseCodewardenTask):
                 "cite line numbers, and suggest improvements where appropriate."
             ),
             expected_output=(
-                "A list of review comments in markdown format. Each comment should include the issue, "
+                "A list of review comments in markdown format directly no need of ```markdown. Each comment should include the issue, "
                 "the affected line or section, and a recommended fix or improvement. "
                 "Must mention the filepath for which you are generating comments,fix, improvements or recommendation"
             ),

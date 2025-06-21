@@ -1,5 +1,6 @@
+import datetime
 import os
-from crewai import Crew
+from crewai import Crew, CrewOutput
 import yaml
 import argparse
 import logging
@@ -8,6 +9,65 @@ from codewarden.ai import agents
 from codewarden.ai.tasks import CodeReviewTask
 from codewarden.command import logger as cw_logger
 from codewarden.core.config import Configuration
+
+
+def update_readme_with_commit_review(result: CrewOutput) -> None:
+    # Write the code review result to README.md
+    readme_path = "README.md"
+    if os.path.exists(readme_path):
+        with open(readme_path, "r", encoding="utf-8") as file:
+            readme_content = file.read()
+
+        # Find and replace the code review section
+        code_review_start = "## Code Review"
+        code_review_end = "## "
+
+        # Extract content before and after the code review section
+        if code_review_start in readme_content:
+            before_section = readme_content.split(code_review_start)[0]
+            after_sections = readme_content.split(code_review_start)[1:]
+
+            if after_sections:
+                # Find the next section marker
+                remaining_content = after_sections[0]
+                if code_review_end in remaining_content:
+                    after_section = (
+                        code_review_end + remaining_content.split(code_review_end, 1)[1]
+                    )
+                else:
+                    after_section = ""
+            else:
+                after_section = ""
+        else:
+            # If no code review section exists, add it before the last section
+            sections = readme_content.split("## ")
+            if len(sections) > 1:
+                before_section = "## ".join(sections[:-1])
+                after_section = "## " + sections[-1]
+            else:
+                before_section = readme_content
+                after_section = ""
+
+        # Create new code review content
+        new_code_review_section = f"""## Code Review
+
+### Latest Code Review Results
+- *Generated on: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
+- *Token usage: {result.token_usage}*
+
+{result.__str__().replace("```markdown", "")}
+
+---
+"""
+
+        # Write updated README
+        updated_readme = before_section + new_code_review_section + after_section
+        with open(readme_path, "w", encoding="utf-8") as file:
+            file.write(updated_readme)
+
+        logging.info("Updated README.md with latest code review results")
+    else:
+        logging.warning("README.md not found, skipping code review update")
 
 
 def init_config() -> Configuration | None:
@@ -62,7 +122,8 @@ def main():
             ],
         }
     )
-    conf.logger.info("agent output= %s", result)
+
+    update_readme_with_commit_review(result)
 
 
 if __name__ == "__main__":
