@@ -90,6 +90,6 @@ class GithubCommentTask(BaseCodewardenTask):
         return Task(
             agent=self.agent,
             description="Convert the review output into structured GitHub comments with filename, line number, and message.",
-            expected_output="Direct List of JSON-formatted GitHub comments with path, position, and message. No need of additional ```json tag in response",
+            expected_output="Lists of JSON-formatted GitHub comments with path, position, commit_id and message.",
             async_execution=False,
         )

@@ -9,6 +9,7 @@ from codewarden.ai.tools import (
     GitDiffTool,
     GitHubCommitCommentTool,
     GitHubPRCommentTool,
+    GitHubRepoInfoTool,
     PRDiffTool,
     StaticAnalysisTool,
     TestScannerTool,
@@ -88,6 +89,7 @@ class GithubCommentAgent(BaseCodewardenAgent):
         self,
         conf: Configuration,
         tools: typing.List[BaseTool] = [
+            GitHubRepoInfoTool(),
             GitHubCommitCommentTool(),
             # GitHubPRCommentTool(),
         ],
@@ -97,7 +99,7 @@ class GithubCommentAgent(BaseCodewardenAgent):
         self.tools = tools
 
         self.agent = Agent(
-            role="GitHub PR Comment Writer",
+            role="GitHub Comment Writer",
             goal="Turn code review feedback into GitHub comments",
             backstory="A GitHub-savvy assistant that formats review insights into GitHub-ready comments.",
             tools=self.tools,

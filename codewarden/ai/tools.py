@@ -176,6 +176,42 @@ class GitHubPRCommentTool(BaseTool):
         return f"Posted comment to {path}:{position}" if response.ok else response.text
 
 
+class GitHubRepoInfoTool(BaseTool):
+    name: str = "Get GitHub Repository Info"
+    description: str = (
+        "Gets the GitHub repository name and current commit hash using git commands"
+    )
+
+    def _run(self) -> str:
+        try:
+            # Get repository name using git config and sed
+            repo_cmd = "git config --get remote.origin.url | sed -E 's#(git@|https://)github.com[:/](.*)\.git#\\2#'"
+            repo_result = subprocess.run(
+                repo_cmd, shell=True, capture_output=True, text=True
+            )
+
+            if repo_result.returncode != 0:
+                return f"Failed to get repository name: {repo_result.stderr}"
+
+            repo_name = repo_result.stdout.strip()
+
+            # Get current commit hash
+            commit_cmd = "git rev-parse HEAD"
+            commit_result = subprocess.run(
+                commit_cmd, shell=True, capture_output=True, text=True
+            )
+
+            if commit_result.returncode != 0:
+                return f"Failed to get commit hash: {commit_result.stderr}"
+
+            commit_sha = commit_result.stdout.strip()
+
+            return f"Repository: {repo_name}, Commit: {commit_sha}"
+
+        except Exception as e:
+            return f"Error getting GitHub repository info: {str(e)}"
+
+
 class GitHubCommitCommentTool(BaseTool):
     name: str = "Github Commit Comment"
     description: str = "Posts a comment on a GitHub commit"
@@ -187,7 +223,7 @@ class GitHubCommitCommentTool(BaseTool):
         if not token:
             return "GITHUB_TOKEN is not set."
 
-        repo = "codewarden-code-reviewer"
+        repo = "sounishnath003/codewarden-code-reviewer"
         commit_sha = "4aae40c"
 
         url = f"https://api.github.com/repos/{repo}/commits/{commit_sha}/comments"
