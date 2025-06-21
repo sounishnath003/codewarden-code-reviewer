@@ -1,7 +1,8 @@
+import yaml
 import argparse
 import logging
 
-import yaml
+from codewarden.ai import agents
 from codewarden.core.config import Configuration
 
 
@@ -39,6 +40,10 @@ def main():
     conf.logger.info("i am a INFO log message")
     conf.logger.debug("i am a DEBUG log message")
     conf.logger.warning("i am a WARNING log message")
+
+    prd = agents.ProjectUnderstandingAgent(conf)
+    result = prd.agent.kickoff("Agentic AI workflow")
+    logging.debug("result: %s", result)
 
 
 if __name__ == "__main__":

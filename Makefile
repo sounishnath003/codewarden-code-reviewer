@@ -5,7 +5,7 @@ fmt:
 
 .PHONY: install
 install:
-	uv add google-generativeai google-cloud-bigquery crewai black pyyaml
+	uv add google-generativeai google-cloud-bigquery crewai crewai_tools black pyyaml
 
 .PHONY: run
 run: fmt
