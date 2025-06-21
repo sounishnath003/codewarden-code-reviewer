@@ -1,5 +1,6 @@
 import typing
-from crewai import Agent, Task
+from crewai import Agent
+from crewai.tools import BaseTool
 
 from codewarden.ai.base import BaseCodewardenAgent
 from codewarden.core.config import Configuration
@@ -12,10 +13,12 @@ from codewarden.ai.tools import GitDiffTool
 
 
 class CodeReviewAgent(BaseCodewardenAgent):
-    def __init__(self, conf: Configuration) -> None:
+    def __init__(
+        self, conf: Configuration, tools: typing.List[BaseTool] = [GitDiffTool()]
+    ) -> None:
         super().__init__()
         self.conf = conf
-        self.tools = [GitDiffTool()]
+        self.tools = tools
 
         self.agent = Agent(
             role="Code Reviewer",

@@ -4,7 +4,7 @@ from typing import Any
 from crewai.tools import BaseTool
 
 
-class T(BaseTool):
+class ProjectWorkspaceAnalyzer(BaseTool):
     name: str = "Project Workpace Analyzer"
     description: str = (
         "Understands the whole project context (structure, modules, purpose)"
@@ -20,6 +20,8 @@ class GitDiffTool(BaseTool):
     name: str = "Git Diff Tool"
     description: str = "Fetches the latest git diff between two latest commits"
 
+    logger: logging.Logger = logging.getLogger("Codewarden")
+
     def _run(
         self,
         start_commit: str = "HEAD~1",
@@ -27,6 +29,17 @@ class GitDiffTool(BaseTool):
         *args: Any,
         **kwargs: Any,
     ) -> Any:
-        return subprocess.check_output(
-            ["git", "diff", f"{start_commit}...{end_commit}"]
-        ).decode()
+        try:
+            result = subprocess.run(
+                ["git", "diff", f"{start_commit}...{end_commit}"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            return result.stdout
+        except subprocess.CalledProcessError as e:
+            self.logger.error("Failed to get git diff: %s", e.stderr or str(e))
+            return f"Error fetching git diff: {e.stderr or str(e)}"
+        except Exception as ex:
+            self.logger.error("Unexpected error in GitDiffTool: %s", str(ex))
+            return f"Unexpected error: {str(ex)}"

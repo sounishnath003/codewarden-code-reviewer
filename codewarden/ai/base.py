@@ -1,4 +1,4 @@
-from abc import ABC, abstractproperty
+from abc import ABC
 from crewai import Agent, Task
 from codewarden.core.config import Configuration
 
