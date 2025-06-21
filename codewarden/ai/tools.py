@@ -143,7 +143,7 @@ class GitDiffTool(BaseTool):
             cmd = ["git", "diff", f"{start_commit}...{end_commit}"]
             # add exclude_files if None or length is zero
             # Use configurable exclude patterns if available, otherwise fall back to defaults
-            if not exclude_files or len(exclude_files)==0:
+            if not exclude_files:
                 exclude_files = [
                     ":(exclude)docs/",
                     ":(exclude)uv.lock",
@@ -294,9 +294,9 @@ class GitHubCommitCommentTool(BaseTool):
 
         payload = {
             "body": f"[Codewarden] ✨: {message}",
-            "path": path,
-            "position": position,  # Position in diff, not line number in file!
-            "commit_id": commit_sha,
+            # "path": path,
+            # "position": position,  # Position in diff, not line number in file!
+            # "commit_id": commit_sha,
         }
 
         response = requests.post(url, json=payload, headers=headers)
