@@ -1,63 +1,45 @@
-# Codewarden
+# CodeWarden
 
-Codewarden is an AI-powered code review tool that helps developers identify code issues, maintainability concerns, and ensure adherence to coding standards. It aims to use a combination of static analysis, test coverage analysis, and AI agents to provide comprehensive code reviews.
+CodeWarden is a tool designed to automate code review and improve code quality. It uses a combination of static analysis, Git diff analysis, and AI agents to identify code issues, maintainability concerns, and adherence to standards. It can also be used to update the README file and provide feedback as GitHub comments.
 
-## Features
+## Key Components
 
-*   **AI-Powered Code Review:** Uses AI agents to analyze code and identify potential issues.
-*   **Git Integration:** Analyzes Git diffs to focus on changes.
-*   **Static Analysis:** Performs static analysis to detect code quality issues.
-*   **Test Coverage Analysis:** Checks test coverage to ensure code is properly tested.
-*   **GitHub Integration:** Aims to generate comments for GitHub pull requests.
+*   **`main.py`**: The entry point of the application, which initializes and runs the command-line interface.
+*   **`codewarden/command/cli.py`**: Defines the command-line interface using `argparse`. It reads a YAML configuration file and initializes the `Crew` of agents and tasks.
+*   **`codewarden/core/config.py`**: Defines the `Configuration` class, which stores configuration parameters such as environment, model name, log level, credentials, and exclude patterns. It also initializes a logger and configures a Language Model.
+*   **`codewarden/ai/agents.py`**: Defines the AI agents used in the `CrewAI` workflow. These agents include:
+    *   `WorkspaceContextAgent`: Analyzes the project structure.
+    *   `CodeReviewAgent`: Identifies code issues.
+    *   `CodeTestAgent`: Checks test coverage.
+    *   `GithubCommentAgent`: Writes GitHub comments.
+*   **`codewarden/ai/tasks.py`**: Defines the tasks performed by the agents. These tasks include code review, workspace context analysis, updating the README, checking test coverage, and writing GitHub comments.
+*   **`codewarden/ai/tools.py`**: Defines the tools used by the agents to perform their tasks. These tools include:
+    *   `CodeReadTool`
+    *   `GitDiffTool`
+    *   `GitHubCommitCommentTool`
+    *   `GitHubPRCommentTool`
+    *   `GitHubRepoInfoTool`
+    *   `PRDiffTool`
+    *   `StaticAnalysisTool`
+    *   `TestScannerTool`
+    *   `UpdateReadmeTool`
+    *   `ProjectWorkspaceStructureTool`
 
-## Installation
+## Design Patterns
 
-```bash
-pip install python-dotenv
-pip install uvloop
-pip install click
-pip install crewai
-```
+*   **CrewAI**: The project uses the `crewAI` library to orchestrate the AI agents and tasks.
+*   **Dataclasses**: The `Configuration` class uses a dataclass to store configuration parameters.
 
-## Usage
+## Technologies Used
 
-```bash
-# Example usage (assuming a CLI entry point)
-# make run
-```
+*   Python
+*   `crewAI`
+*   `argparse`
+*   YAML
+*   dataclasses
+*   logging
 
-## Project Structure
+## Project Purpose
 
-```
-codewarden/
-├── ai/
-│   ├── agents.py  # Defines the AI agents for code review
-│   ├── base.py    # Base classes for AI agents
-│   └── tools.py   # Tools used by the AI agents
-├── core/
-│   └── config.py  # Configuration management
-├── hooks/
-│   └── prehooks.py # Pre-commit hooks
-├── command/
-│   └── logger.py # Logging setup
-└── README.md      # This file
-```
-
-## Key Components (Planned)
-
-*   **AI Agents:** The `ai/` directory will contain modules defining the AI agents used for code review. It will likely use the `crewai` library to create agents with specific roles, goals, and tools. Examples of agents might include:
-    *   `WorkspaceContextAgent`: Understands the project structure and coding patterns.
-    *   `CodeReviewAgent`: Identifies code issues, maintainability concerns, and adherence to standards.
-    *   `CodeTestAgent`: Verifies that all new or changed code is covered by tests.
-    *   `GithubCommentAgent`: Generates comments for GitHub pull requests.
-*   **AI Tools:** The `ai/` directory will likely contain modules defining tools that the AI agents use. These tools could include:
-    *   `CodeReadTool`: Reads the code written in a file.
-    *   `UpdateReadmeTool`: Updates the README file.
-    *   `GitDiffTool`: Fetches Git diffs between commits.
-    *   `PRDiffTool`: Fetches the diff from a GitHub pull request.
-    *   `TestScannerTool`: Finds test files or test functions related to a file or module.
-    *   `StaticAnalysisTool`: Runs static analysis (e.g., pylint) on a file.
-    *   `GitHubPRCommentTool`: Posts a comment on a GitHub pull request.
-    *   `GitHubCommitCommentTool`: Posts a comment on a GitHub commit.
-*   **Configuration:** The `core/` directory will likely contain modules for managing the project's configuration settings.
+The purpose of CodeWarden is to automate code review and improve code quality by using AI agents and various tools to analyze code, identify issues, and provide feedback.
 > Readme has been updated by Codewarden

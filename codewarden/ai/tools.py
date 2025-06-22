@@ -9,9 +9,9 @@ import requests
 
 
 class ProjectWorkspaceStructureTool(BaseTool):
-    name: str = "Project Workspace Analyzer"
+    name: str = "Get Project Folder Structure"
     description: str = (
-        "Analyzes the project structure by scanning directories and files, excluding irrelevant files"
+        "Scans and analyzes the complete project workspace structure, including directories, files, and their organization while intelligently filtering out build artifacts, dependencies, and configuration files to provide a clean overview of the codebase architecture"
     )
     logger: logging.Logger = logging.getLogger("Codewarden")
 
