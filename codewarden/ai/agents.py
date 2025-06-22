@@ -48,7 +48,7 @@ class CodeReviewAgent(BaseCodewardenAgent):
         self.conf = conf
         if tools is None:
             tools = [
-                GitDiffTool(config=conf),
+                GitDiffTool(),
                 # PRDiffTool(),
                 StaticAnalysisTool(),
             ]
@@ -87,6 +87,7 @@ class GithubCommentAgent(BaseCodewardenAgent):
         self,
         conf: Configuration,
         tools: typing.List[BaseTool] = [
+            GitDiffTool(),
             GitHubRepoInfoTool(),
             GitHubCommitCommentTool(),
             # GitHubPRCommentTool(),
