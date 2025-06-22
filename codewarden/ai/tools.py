@@ -15,17 +15,48 @@ class ProjectWorkspaceStructureTool(BaseTool):
     )
     logger: logging.Logger = logging.getLogger("Codewarden")
 
-    def _run(self, directory_path: str, exclude_files: typing.List[str] = [], *args: Any, **kwargs: Any) -> Any:
+    def _run(
+        self,
+        directory_path: str,
+        exclude_files: typing.List[str] = [],
+        *args: Any,
+        **kwargs: Any,
+    ) -> Any:
         self.logger.info("Analyzing directory structure: %s", directory_path)
-        
+
         if not exclude_files:
             exclude_files = [
-                "node_modules", "__pycache__", ".git", ".venv", "venv", "env",
-                "*.pyc", "*.pyo", "*.pyd", "*.so", "*.dll", "*.dylib",
-                "*.log", "*.tmp", "*.temp", "*.cache", "*.lock",
-                "*.min.js", "*.min.css", "*.map", "*.bundle.js",
-                ".DS_Store", "Thumbs.db", ".idea", ".vscode",
-                "*.egg-info", "dist", "build", "target", "bin", "obj",
+                "node_modules",
+                "__pycache__",
+                ".git",
+                ".venv",
+                "venv",
+                "env",
+                "*.pyc",
+                "*.pyo",
+                "*.pyd",
+                "*.so",
+                "*.dll",
+                "*.dylib",
+                "*.log",
+                "*.tmp",
+                "*.temp",
+                "*.cache",
+                "*.lock",
+                "*.min.js",
+                "*.min.css",
+                "*.map",
+                "*.bundle.js",
+                ".DS_Store",
+                "Thumbs.db",
+                ".idea",
+                ".vscode",
+                "*.egg-info",
+                "dist",
+                "build",
+                "target",
+                "bin",
+                "obj",
                 "pyproject.toml",
                 ".env",
                 "package.json",
@@ -92,32 +123,34 @@ class ProjectWorkspaceStructureTool(BaseTool):
                 "vcpkg-configuration.json",
                 ".md",
             ]
-        
+
         try:
             project_structure = self._scan_directory(directory_path, exclude_files)
             return {
                 "directory_path": directory_path,
                 "structure": project_structure,
-                "summary": f"Project structure analyzed for {directory_path}. Found {len(project_structure)} relevant files/directories."
+                "summary": f"Project structure analyzed for {directory_path}. Found {len(project_structure)} relevant files/directories.",
             }
         except Exception as e:
             self.logger.error("Error analyzing directory structure: %s", str(e))
             return {"error": f"Failed to analyze directory structure: {str(e)}"}
 
-    def _scan_directory(self, path: str, exclude_patterns: typing.List[str]) -> typing.Dict[str, Any]:
+    def _scan_directory(
+        self, path: str, exclude_patterns: typing.List[str]
+    ) -> typing.Dict[str, Any]:
         """Recursively scan directory and build structure tree"""
         structure = {}
         path_obj = Path(path)
-        
+
         if not path_obj.exists() or not path_obj.is_dir():
             return {"error": f"Directory does not exist: {path}"}
-        
+
         try:
             for item in path_obj.iterdir():
                 # Skip if item matches any exclude pattern
                 if self._should_exclude(item, exclude_patterns):
                     continue
-                
+
                 item_name = item.name
                 if item.is_dir():
                     # Recursively scan subdirectories
@@ -125,28 +158,28 @@ class ProjectWorkspaceStructureTool(BaseTool):
                     if sub_structure:
                         structure[item_name] = {
                             "type": "directory",
-                            "contents": sub_structure
+                            "contents": sub_structure,
                         }
                 else:
                     # Add file with basic info
                     structure[item_name] = {
                         "type": "file",
                         "size": item.stat().st_size,
-                        "extension": item.suffix
+                        "extension": item.suffix,
                     }
-        
+
         except PermissionError:
             self.logger.warning("Permission denied accessing: %s", path)
         except Exception as e:
             self.logger.error("Error scanning directory %s: %s", path, str(e))
-        
+
         return structure
 
     def _should_exclude(self, item: Path, exclude_patterns: typing.List[str]) -> bool:
         """Check if item should be excluded based on patterns"""
         item_name = item.name
         item_path = str(item)
-        
+
         for pattern in exclude_patterns:
             # Handle wildcard patterns
             if "*" in pattern:
@@ -162,7 +195,7 @@ class ProjectWorkspaceStructureTool(BaseTool):
             # Handle directory patterns
             elif pattern in item_path.split(os.sep):
                 return True
-        
+
         return False
 
 

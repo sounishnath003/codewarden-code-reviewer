@@ -14,7 +14,7 @@ from codewarden.ai.tools import (
     StaticAnalysisTool,
     TestScannerTool,
     UpdateReadmeTool,
-    ProjectWorkspaceStructureTool
+    ProjectWorkspaceStructureTool,
 )
 
 
@@ -22,7 +22,11 @@ class WorkspaceContextAgent(BaseCodewardenAgent):
     def __init__(
         self,
         conf: Configuration,
-        tools: typing.List[BaseTool] = [ProjectWorkspaceStructureTool(), CodeReadTool(), UpdateReadmeTool()],
+        tools: typing.List[BaseTool] = [
+            ProjectWorkspaceStructureTool(),
+            CodeReadTool(),
+            UpdateReadmeTool(),
+        ],
     ) -> None:
         super().__init__()
         self.conf = conf
