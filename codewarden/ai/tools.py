@@ -8,16 +8,162 @@ from crewai.tools import BaseTool
 import requests
 
 
-class ProjectWorkspaceAnalyzer(BaseTool):
-    name: str = "Project Workpace Analyzer"
+class ProjectWorkspaceStructureTool(BaseTool):
+    name: str = "Project Workspace Analyzer"
     description: str = (
-        "Understands the whole project context (structure, modules, purpose)"
+        "Analyzes the project structure by scanning directories and files, excluding irrelevant files"
     )
     logger: logging.Logger = logging.getLogger("Codewarden")
 
-    def _run(self, directory_path: str, *args: Any, **kwargs: Any) -> Any:
-        self.logger.info("directory_path: %s", directory_path)
-        return f"It is a Python + UV based project in directory {directory_path}. It is an AI agentic workflow"
+    def _run(self, directory_path: str, exclude_files: typing.List[str] = [], *args: Any, **kwargs: Any) -> Any:
+        self.logger.info("Analyzing directory structure: %s", directory_path)
+        
+        if not exclude_files:
+            exclude_files = [
+                "node_modules", "__pycache__", ".git", ".venv", "venv", "env",
+                "*.pyc", "*.pyo", "*.pyd", "*.so", "*.dll", "*.dylib",
+                "*.log", "*.tmp", "*.temp", "*.cache", "*.lock",
+                "*.min.js", "*.min.css", "*.map", "*.bundle.js",
+                ".DS_Store", "Thumbs.db", ".idea", ".vscode",
+                "*.egg-info", "dist", "build", "target", "bin", "obj",
+                "pyproject.toml",
+                ".env",
+                "package.json",
+                "package-lock.json",
+                ".md",
+                "yarn.lock",
+                "pnpm-lock.yaml",
+                "Cargo.lock",
+                "go.mod",
+                "go.sum",
+                "requirements.txt",
+                "Pipfile",
+                "Pipfile.lock",
+                "poetry.lock",
+                "setup.py",
+                "setup.cfg",
+                "MANIFEST.in",
+                ".gitignore",
+                ".gitattributes",
+                ".editorconfig",
+                ".prettierrc",
+                ".eslintrc",
+                "tsconfig.json",
+                "webpack.config.js",
+                "vite.config.js",
+                "rollup.config.js",
+                "jest.config.js",
+                "karma.conf.js",
+                "mocha.opts",
+                ".nycrc",
+                ".coveragerc",
+                "tox.ini",
+                "pytest.ini",
+                ".flake8",
+                ".pylintrc",
+                "mypy.ini",
+                "bandit.yaml",
+                "safety.yaml",
+                "docker-compose.yml",
+                "Dockerfile",
+                ".dockerignore",
+                "Makefile",
+                "CMakeLists.txt",
+                "build.gradle",
+                "pom.xml",
+                "composer.json",
+                "composer.lock",
+                "Gemfile",
+                "Gemfile.lock",
+                "Rakefile",
+                "mix.exs",
+                "mix.lock",
+                "pubspec.yaml",
+                "pubspec.lock",
+                "cabal.project",
+                "stack.yaml",
+                "package.yaml",
+                "shard.yml",
+                "shard.lock",
+                "vcpkg.json",
+                "conanfile.txt",
+                "conanfile.py",
+                "vcpkg.json",
+                "vcpkg-configuration.json",
+                ".md",
+            ]
+        
+        try:
+            project_structure = self._scan_directory(directory_path, exclude_files)
+            return {
+                "directory_path": directory_path,
+                "structure": project_structure,
+                "summary": f"Project structure analyzed for {directory_path}. Found {len(project_structure)} relevant files/directories."
+            }
+        except Exception as e:
+            self.logger.error("Error analyzing directory structure: %s", str(e))
+            return {"error": f"Failed to analyze directory structure: {str(e)}"}
+
+    def _scan_directory(self, path: str, exclude_patterns: typing.List[str]) -> typing.Dict[str, Any]:
+        """Recursively scan directory and build structure tree"""
+        structure = {}
+        path_obj = Path(path)
+        
+        if not path_obj.exists() or not path_obj.is_dir():
+            return {"error": f"Directory does not exist: {path}"}
+        
+        try:
+            for item in path_obj.iterdir():
+                # Skip if item matches any exclude pattern
+                if self._should_exclude(item, exclude_patterns):
+                    continue
+                
+                item_name = item.name
+                if item.is_dir():
+                    # Recursively scan subdirectories
+                    sub_structure = self._scan_directory(str(item), exclude_patterns)
+                    if sub_structure:
+                        structure[item_name] = {
+                            "type": "directory",
+                            "contents": sub_structure
+                        }
+                else:
+                    # Add file with basic info
+                    structure[item_name] = {
+                        "type": "file",
+                        "size": item.stat().st_size,
+                        "extension": item.suffix
+                    }
+        
+        except PermissionError:
+            self.logger.warning("Permission denied accessing: %s", path)
+        except Exception as e:
+            self.logger.error("Error scanning directory %s: %s", path, str(e))
+        
+        return structure
+
+    def _should_exclude(self, item: Path, exclude_patterns: typing.List[str]) -> bool:
+        """Check if item should be excluded based on patterns"""
+        item_name = item.name
+        item_path = str(item)
+        
+        for pattern in exclude_patterns:
+            # Handle wildcard patterns
+            if "*" in pattern:
+                if pattern.startswith("*"):
+                    if item_name.endswith(pattern[1:]):
+                        return True
+                elif pattern.endswith("*"):
+                    if item_name.startswith(pattern[:-1]):
+                        return True
+            # Handle exact matches
+            elif item_name == pattern or item_path.endswith(pattern):
+                return True
+            # Handle directory patterns
+            elif pattern in item_path.split(os.sep):
+                return True
+        
+        return False
 
 
 class CodeReadTool(BaseTool):
