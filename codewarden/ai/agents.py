@@ -22,14 +22,16 @@ class WorkspaceContextAgent(BaseCodewardenAgent):
     def __init__(
         self,
         conf: Configuration,
-        tools: typing.List[BaseTool] = [
-            ProjectWorkspaceStructureTool(),
-            CodeReadTool(),
-            UpdateReadmeTool(),
-        ],
+        tools: typing.List[BaseTool] = [],
     ) -> None:
         super().__init__()
         self.conf = conf
+        if not tools:
+            tools = [
+                ProjectWorkspaceStructureTool(conf=conf),
+                CodeReadTool(conf=conf),
+                UpdateReadmeTool(conf=conf),
+            ]
         self.tools = tools
 
         self.agent = Agent(
@@ -46,15 +48,15 @@ class CodeReviewAgent(BaseCodewardenAgent):
     def __init__(
         self,
         conf: Configuration,
-        tools: typing.Optional[typing.List[BaseTool]] = None,
+        tools: typing.Optional[typing.List[BaseTool]] = [],
     ) -> None:
         super().__init__()
         self.conf = conf
-        if tools is None:
+        if not tools:
             tools = [
-                GitDiffTool(),
-                # PRDiffTool(),
-                StaticAnalysisTool(),
+                GitDiffTool(conf=conf),
+                # PRDiffTool(conf=conf),
+                StaticAnalysisTool(conf=conf),
             ]
         self.tools = tools
 
@@ -70,10 +72,12 @@ class CodeReviewAgent(BaseCodewardenAgent):
 
 class CodeTestAgent(BaseCodewardenAgent):
     def __init__(
-        self, conf: Configuration, tools: typing.List[BaseTool] = [TestScannerTool()]
+        self, conf: Configuration, tools: typing.List[BaseTool] = []
     ) -> None:
         super().__init__()
         self.conf = conf
+        if not tools:
+            tools = [TestScannerTool(conf=conf)]
         self.tools = tools
 
         self.agent = Agent(
@@ -90,15 +94,16 @@ class GithubCommentAgent(BaseCodewardenAgent):
     def __init__(
         self,
         conf: Configuration,
-        tools: typing.List[BaseTool] = [
-            GitDiffTool(),
-            GitHubRepoInfoTool(),
-            GitHubCommitCommentTool(),
-            # GitHubPRCommentTool(),
-        ],
+        tools: typing.List[BaseTool] = [],
     ) -> None:
         super().__init__()
         self.conf = conf
+        if not tools:
+            tools = [
+                GitHubRepoInfoTool(conf=conf),
+                GitHubCommitCommentTool(conf=conf),
+                # GitHubPRCommentTool(conf=conf),
+            ]
         self.tools = tools
 
         self.agent = Agent(

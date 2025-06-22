@@ -6,14 +6,14 @@ from typing import Any
 import typing
 from crewai.tools import BaseTool
 import requests
+from codewarden.ai.base import BaseCodewardenTool
 
 
-class ProjectWorkspaceStructureTool(BaseTool):
+class ProjectWorkspaceStructureTool(BaseCodewardenTool):
     name: str = "Get Project Folder Structure"
     description: str = (
         "Scans and analyzes the complete project workspace structure, including directories, files, and their organization while intelligently filtering out build artifacts, dependencies, and configuration files to provide a clean overview of the codebase architecture"
     )
-    logger: logging.Logger = logging.getLogger("Codewarden")
 
     def _run(
         self,
@@ -22,41 +22,203 @@ class ProjectWorkspaceStructureTool(BaseTool):
         *args: Any,
         **kwargs: Any,
     ) -> Any:
-        self.logger.info("Analyzing directory structure: %s", directory_path)
+        self.conf.logger.info("Analyzing directory structure: %s", directory_path)
 
         if not exclude_files:
-            exclude_files = [
-                "node_modules",
-                "__pycache__",
-                ".git",
-                ".venv",
-                "venv",
-                "env",
-                "*.pyc",
-                "*.pyo",
-                "*.pyd",
-                "*.so",
-                "*.dll",
-                "*.dylib",
-                "*.log",
-                "*.tmp",
-                "*.temp",
-                "*.cache",
-                "*.lock",
-                "*.min.js",
-                "*.min.css",
-                "*.map",
-                "*.bundle.js",
-                ".DS_Store",
-                "Thumbs.db",
-                ".idea",
-                ".vscode",
-                "*.egg-info",
-                "dist",
-                "build",
-                "target",
-                "bin",
-                "obj",
+            exclude_files = (
+                self.conf.global_exclution_files_folders 
+                if self.conf else [
+                    "node_modules",
+                    "__pycache__",
+                    ".git",
+                    ".venv",
+                    "venv",
+                    "env",
+                    "*.pyc",
+                    "*.txt",
+                    "*.pyo",
+                    "*.pyd",
+                    "*.so",
+                    "*.dll",
+                    "*.dylib",
+                    "*.log",
+                    "*.tmp",
+                    "*.temp",
+                    "*.cache",
+                    "*.lock",
+                    "*.min.js",
+                    "*.min.css",
+                    "*.map",
+                    "*.bundle.js",
+                    ".DS_Store",
+                    "Thumbs.db",
+                    ".idea",
+                    ".vscode",
+                    "*.egg-info",
+                    "dist",
+                    "build",
+                    "target",
+                    "bin",
+                    "obj",
+                    "pyproject.toml",
+                    ".env",
+                    "package.json",
+                    "package-lock.json",
+                    ".md",
+                    "yarn.lock",
+                    "pnpm-lock.yaml",
+                    "Cargo.lock",
+                    "go.mod",
+                    "go.sum",
+                    "requirements.txt",
+                    "Pipfile",
+                    "Pipfile.lock",
+                    "poetry.lock",
+                    "setup.py",
+                    "setup.cfg",
+                    "MANIFEST.in",
+                    ".gitignore",
+                    ".gitattributes",
+                    ".editorconfig",
+                    ".prettierrc",
+                    ".eslintrc",
+                    "tsconfig.json",
+                    "webpack.config.js",
+                    "vite.config.js",
+                    "rollup.config.js",
+                    "jest.config.js",
+                    "karma.conf.js",
+                    "mocha.opts",
+                    ".nycrc",
+                    ".coveragerc",
+                    "tox.ini",
+                    "pytest.ini",
+                    ".flake8",
+                    ".pylintrc",
+                    "mypy.ini",
+                    "bandit.yaml",
+                    "safety.yaml",
+                    "docker-compose.yml",
+                    "Dockerfile",
+                    ".dockerignore",
+                    "Makefile",
+                    "CMakeLists.txt",
+                    "build.gradle",
+                    "pom.xml",
+                    "composer.json",
+                    "composer.lock",
+                    "Gemfile",
+                    "Gemfile.lock",
+                    "Rakefile",
+                    "mix.exs",
+                    "mix.lock",
+                    "pubspec.yaml",
+                    "pubspec.lock",
+                    "cabal.project",
+                    "stack.yaml",
+                    "package.yaml",
+                    "shard.yml",
+                    "shard.lock",
+                    "vcpkg.json",
+                    "conanfile.txt",
+                    "conanfile.py",
+                    "vcpkg.json",
+                    "vcpkg-configuration.json",
+                    ".md",
+                ]
+            )
+
+        try:
+            project_structure = self._scan_directory(directory_path, exclude_files)
+            return {
+                "directory_path": directory_path,
+                "structure": project_structure,
+                "summary": f"Project structure analyzed for {directory_path}. Found {len(project_structure)} relevant files/directories.",
+            }
+        except Exception as e:
+            self.conf.logger.error("Error analyzing directory structure: %s", str(e))
+            return {"error": f"Failed to analyze directory structure: {str(e)}"}
+
+    def _scan_directory(
+        self, path: str, exclude_patterns: typing.List[str]
+    ) -> typing.Dict[str, Any]:
+        """Recursively scan directory and build structure tree"""
+        structure = {}
+        path_obj = Path(path)
+
+        if not path_obj.exists() or not path_obj.is_dir():
+            return {"error": f"Directory does not exist: {path}"}
+
+        try:
+            for item in path_obj.iterdir():
+                # Skip if item matches any exclude pattern
+                if self._should_exclude(item, exclude_patterns):
+                    continue
+
+                item_name = item.name
+                if item.is_dir():
+                    # Recursively scan subdirectories
+                    sub_structure = self._scan_directory(str(item), exclude_patterns)
+                    if sub_structure:
+                        structure[item_name] = {
+                            "type": "directory",
+                            "contents": sub_structure,
+                        }
+                else:
+                    # Add file with basic info
+                    structure[item_name] = {
+                        "type": "file",
+                        "size": item.stat().st_size,
+                        "extension": item.suffix,
+                    }
+
+        except PermissionError:
+            self.conf.logger.warning("Permission denied accessing: %s", path)
+        except Exception as e:
+            self.conf.logger.error("Error scanning directory %s: %s", path, str(e))
+
+        return structure
+
+    def _should_exclude(self, item: Path, exclude_patterns: typing.List[str]) -> bool:
+        """Check if item should be excluded based on patterns"""
+        item_name = item.name
+        item_path = str(item)
+
+        for pattern in exclude_patterns:
+            # Handle wildcard patterns
+            if "*" in pattern:
+                if pattern.startswith("*"):
+                    if item_name.endswith(pattern[1:]):
+                        return True
+                elif pattern.endswith("*"):
+                    if item_name.startswith(pattern[:-1]):
+                        return True
+            # Handle exact matches
+            elif item_name == pattern or item_path.endswith(pattern):
+                return True
+            # Handle directory patterns
+            elif pattern in item_path.split(os.sep):
+                return True
+
+        return False
+
+
+class CodeReadTool(BaseCodewardenTool):
+    name: str = "Read Code"
+    description: str = "Reads the code written in a file"
+
+    def _run(self, path: str) -> str:
+
+        file = Path(path)
+        if not file.exists():
+            return (
+                f"File {path} does not exist. No Recommendations should be generated."
+            )
+
+        # Use configuration for excluded files if available, otherwise use a default list
+        excluded_filenames = (
+            self.conf.global_exclution_files_folders 
+            if self.conf else [
                 "pyproject.toml",
                 ".env",
                 "package.json",
@@ -123,169 +285,16 @@ class ProjectWorkspaceStructureTool(BaseTool):
                 "vcpkg-configuration.json",
                 ".md",
             ]
+        )
 
-        try:
-            project_structure = self._scan_directory(directory_path, exclude_files)
-            return {
-                "directory_path": directory_path,
-                "structure": project_structure,
-                "summary": f"Project structure analyzed for {directory_path}. Found {len(project_structure)} relevant files/directories.",
-            }
-        except Exception as e:
-            self.logger.error("Error analyzing directory structure: %s", str(e))
-            return {"error": f"Failed to analyze directory structure: {str(e)}"}
-
-    def _scan_directory(
-        self, path: str, exclude_patterns: typing.List[str]
-    ) -> typing.Dict[str, Any]:
-        """Recursively scan directory and build structure tree"""
-        structure = {}
-        path_obj = Path(path)
-
-        if not path_obj.exists() or not path_obj.is_dir():
-            return {"error": f"Directory does not exist: {path}"}
-
-        try:
-            for item in path_obj.iterdir():
-                # Skip if item matches any exclude pattern
-                if self._should_exclude(item, exclude_patterns):
-                    continue
-
-                item_name = item.name
-                if item.is_dir():
-                    # Recursively scan subdirectories
-                    sub_structure = self._scan_directory(str(item), exclude_patterns)
-                    if sub_structure:
-                        structure[item_name] = {
-                            "type": "directory",
-                            "contents": sub_structure,
-                        }
-                else:
-                    # Add file with basic info
-                    structure[item_name] = {
-                        "type": "file",
-                        "size": item.stat().st_size,
-                        "extension": item.suffix,
-                    }
-
-        except PermissionError:
-            self.logger.warning("Permission denied accessing: %s", path)
-        except Exception as e:
-            self.logger.error("Error scanning directory %s: %s", path, str(e))
-
-        return structure
-
-    def _should_exclude(self, item: Path, exclude_patterns: typing.List[str]) -> bool:
-        """Check if item should be excluded based on patterns"""
-        item_name = item.name
-        item_path = str(item)
-
-        for pattern in exclude_patterns:
-            # Handle wildcard patterns
-            if "*" in pattern:
-                if pattern.startswith("*"):
-                    if item_name.endswith(pattern[1:]):
-                        return True
-                elif pattern.endswith("*"):
-                    if item_name.startswith(pattern[:-1]):
-                        return True
-            # Handle exact matches
-            elif item_name == pattern or item_path.endswith(pattern):
-                return True
-            # Handle directory patterns
-            elif pattern in item_path.split(os.sep):
-                return True
-
-        return False
-
-
-class CodeReadTool(BaseTool):
-    name: str = "Read Code"
-    description: str = "Reads the code written in a file"
-    excluded_filenames: typing.List[str] = [
-        "pyproject.toml",
-        ".env",
-        "package.json",
-        "package-lock.json",
-        ".md",
-        "yarn.lock",
-        "pnpm-lock.yaml",
-        "Cargo.lock",
-        "go.mod",
-        "go.sum",
-        "requirements.txt",
-        "Pipfile",
-        "Pipfile.lock",
-        "poetry.lock",
-        "setup.py",
-        "setup.cfg",
-        "MANIFEST.in",
-        ".gitignore",
-        ".gitattributes",
-        ".editorconfig",
-        ".prettierrc",
-        ".eslintrc",
-        "tsconfig.json",
-        "webpack.config.js",
-        "vite.config.js",
-        "rollup.config.js",
-        "jest.config.js",
-        "karma.conf.js",
-        "mocha.opts",
-        ".nycrc",
-        ".coveragerc",
-        "tox.ini",
-        "pytest.ini",
-        ".flake8",
-        ".pylintrc",
-        "mypy.ini",
-        "bandit.yaml",
-        "safety.yaml",
-        "docker-compose.yml",
-        "Dockerfile",
-        ".dockerignore",
-        "Makefile",
-        "CMakeLists.txt",
-        "build.gradle",
-        "pom.xml",
-        "composer.json",
-        "composer.lock",
-        "Gemfile",
-        "Gemfile.lock",
-        "Rakefile",
-        "mix.exs",
-        "mix.lock",
-        "pubspec.yaml",
-        "pubspec.lock",
-        "cabal.project",
-        "stack.yaml",
-        "package.yaml",
-        "shard.yml",
-        "shard.lock",
-        "vcpkg.json",
-        "conanfile.txt",
-        "conanfile.py",
-        "vcpkg.json",
-        "vcpkg-configuration.json",
-        ".md",
-    ]
-
-    def _run(self, path: str) -> str:
-
-        file = Path(path)
-        if not file.exists():
-            return (
-                f"File {path} does not exist. No Recommendations should be generated."
-            )
-
-        for f in self.excluded_filenames:
+        for f in excluded_filenames:
             if f in path:
                 return f"This file={path} is among special configration files, no need to read"
 
         return file.read_text()
 
 
-class UpdateReadmeTool(BaseTool):
+class UpdateReadmeTool(BaseCodewardenTool):
     name: str = "Github Readme Writer"
     description: str = (
         "Updates github readme file with latest feature and information as per the latest workspace"
@@ -303,11 +312,9 @@ class UpdateReadmeTool(BaseTool):
             return f"Failed to updated Readme file due to Error={e}"
 
 
-class GitDiffTool(BaseTool):
+class GitDiffTool(BaseCodewardenTool):
     name: str = "Git Diff Tool"
     description: str = "Fetches the latest git diff between two latest commits"
-
-    logger: logging.Logger = logging.getLogger("Codewarden")
 
     def _run(
         self,
@@ -323,7 +330,7 @@ class GitDiffTool(BaseTool):
             # add exclude_files if None or length is zero
             # Use configurable exclude patterns if available, otherwise fall back to defaults
             if not exclude_files:
-                exclude_files = [
+                exclude_files = self.conf.git_diff_exclude_patterns if self.conf else [
                     ":(exclude)docs/",
                     ":(exclude)uv.lock",
                     ":(exclude)**/*.md",
@@ -341,19 +348,19 @@ class GitDiffTool(BaseTool):
             )
             return result.stdout
         except subprocess.CalledProcessError as e:
-            self.logger.error("Failed to get git diff: %s", e.stderr or str(e))
+            self.conf.logger.error("Failed to get git diff: %s", e.stderr or str(e))
             return f"Error fetching git diff: {e.stderr or str(e)}"
         except Exception as ex:
-            self.logger.error("Unexpected error in GitDiffTool: %s", str(ex))
+            self.conf.logger.error("Unexpected error in GitDiffTool: %s", str(ex))
             return f"Unexpected error: {str(ex)}"
 
 
-class PRDiffTool(BaseTool):
+class PRDiffTool(BaseCodewardenTool):
     name: str = "Get PR Diff"
     description: str = "Fetches the diff from a GitHub pull request"
 
     def _run(self, repo: str, pr_number: int) -> str:
-        token = os.getenv("GITHUB_TOKEN")
+        token = self.conf.github_token if self.conf else os.getenv("GITHUB_TOKEN")
         if not token:
             return "GITHUB_TOKEN not set."
 
@@ -366,7 +373,7 @@ class PRDiffTool(BaseTool):
         return response.text if response.ok else response.text
 
 
-class TestScannerTool(BaseTool):
+class TestScannerTool(BaseCodewardenTool):
     name: str = "find_tests"
     description: str = "Finds test files or test functions related to a file or module"
 
@@ -380,13 +387,12 @@ class TestScannerTool(BaseTool):
             return f"No test results found"
 
 
-class StaticAnalysisTool(BaseTool):
+class StaticAnalysisTool(BaseCodewardenTool):
     name: str = "Run Static Code Analysis"
     description: str = "Runs static analysis (e.g., pylint) on a file"
-    logger: logging.Logger = logging.getLogger("Codewarden")
 
     def _run(self, file_path: str) -> str:
-        self.logger.info("running pylint on file_path=%s", file_path)
+        self.conf.logger.info("running pylint on file_path=%s", file_path)
         try:
             output = subprocess.check_output(
                 ["pylint", file_path], stderr=subprocess.STDOUT
@@ -396,14 +402,14 @@ class StaticAnalysisTool(BaseTool):
             return e.output.decode()
 
 
-class GitHubPRCommentTool(BaseTool):
+class GitHubPRCommentTool(BaseCodewardenTool):
     name: str = "Create Github PR Comment"
     description: str = "Posts a comment on a GitHub PR"
 
     def _run(
         self, repo: str, pr_number: int, path: str, position: int, message: str
     ) -> str:
-        token = os.getenv("GITHUB_TOKEN")
+        token = self.conf.github_token if self.conf else os.getenv("GITHUB_TOKEN")
         if not token:
             return "GITHUB_TOKEN not set."
 
@@ -418,7 +424,7 @@ class GitHubPRCommentTool(BaseTool):
         return f"Posted comment to {path}:{position}" if response.ok else response.text
 
 
-class GitHubRepoInfoTool(BaseTool):
+class GitHubRepoInfoTool(BaseCodewardenTool):
     name: str = "Get GitHub Repository Info"
     description: str = (
         "Gets the GitHub repository name and current commit hash using git commands"
@@ -454,14 +460,14 @@ class GitHubRepoInfoTool(BaseTool):
             return f"Error getting GitHub repository info: {str(e)}"
 
 
-class GitHubCommitCommentTool(BaseTool):
+class GitHubCommitCommentTool(BaseCodewardenTool):
     name: str = "Github Commit Comment"
     description: str = "Posts a comment on a GitHub commit"
 
     def _run(
         self, repo: str, commit_sha: str, path: str, position: int, message: str
     ) -> str:
-        token = os.getenv("GITHUB_TOKEN")
+        token = self.conf.github_token if self.conf else os.getenv("GITHUB_TOKEN")
         if not token:
             return "GITHUB_TOKEN is not set."
 

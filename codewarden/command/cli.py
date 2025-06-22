@@ -62,12 +62,7 @@ def run():
     result = workflow.kickoff(
         inputs={
             "directory_path": os.path.join(os.getcwd()),
-            "exclude_files": [
-                ":(exclude)docs/",
-                ":(exclude)uv.lock",
-                ":(exclude)**/*.md",
-                ":(exclude)package-lock.json",
-            ],
+            "exclude_files": conf.git_diff_exclude_patterns,
         }
     )
 
